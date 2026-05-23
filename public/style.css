@@ -642,6 +642,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  transition: opacity 0.15s ease;
 }
 
 /* Welcome empty state dashboard */

@@ -18,7 +18,7 @@ import {
   listenToMessages
 } from "./firestore.js";
 
-import { executeChatFlow } from "./chat.js";
+import {executeChatFlow} from "./chat.js";
 
 // =========================================================================
 // Application State
@@ -28,6 +28,7 @@ let activeChatId = null;
 let activeChats = [];
 let unsubscribeChats = null;
 let unsubscribeMessages = null;
+let renderedMessageCount = 0; // Track rendered messages to avoid full re-renders
 
 // =========================================================================
 // DOM Element Selectors
@@ -69,7 +70,7 @@ onAuthStateChangedListener((user) => {
 
   if (user) {
     currentUser = user;
-    
+
     // Configure user details in sidebar
     userDisplayName.textContent = user.displayName || "User";
     userEmail.textContent = user.email;
@@ -94,7 +95,7 @@ onAuthStateChangedListener((user) => {
     cleanupListeners();
     chatsList.innerHTML = "";
     chatBox.innerHTML = "";
-    
+
     // Switch layouts
     chatScreen.classList.add("hidden");
     authScreen.classList.remove("hidden");
@@ -111,6 +112,8 @@ function cleanupListeners() {
     unsubscribeMessages();
     unsubscribeMessages = null;
   }
+  renderedMessageCount = 0;
+  chatBox.style.opacity = '1';
 }
 
 // =========================================================================
@@ -148,32 +151,48 @@ function setupMessagesListener(chatId) {
     unsubscribeMessages();
   }
 
-  // Render temporary loader inside the chat logs box
-  chatBox.innerHTML = `
-    <div class="spinner-container" style="margin: auto; padding: 40px;">
-      <div class="loading-spinner" style="width: 40px; height: 40px;"></div>
-      <p class="loading-text" style="font-size: 0.9rem;">Memuat percakapan...</p>
-    </div>
-  `;
+  // Reset rendered count for new chat
+  renderedMessageCount = 0;
+
+  // Fade out smoothly instead of wiping DOM with a spinner
+  chatBox.style.opacity = '0';
+  chatBox.style.transition = 'opacity 0.15s ease';
 
   unsubscribeMessages = listenToMessages(chatId, (messages) => {
     // Check if active chat has changed in between async loads
     if (activeChatId !== chatId) return;
 
-    chatBox.innerHTML = "";
-
     if (messages.length === 0) {
+      chatBox.innerHTML = "";
+      chatBox.style.opacity = '1';
       showEmptyChatState();
+      renderedMessageCount = 0;
       return;
     }
 
     if (emptyChatState) emptyChatState.classList.add("hidden");
 
-    messages.forEach((msg) => {
-      renderMessageBubble(msg.role, msg.content, msg.createdAt);
-    });
-
-    scrollToBottom();
+    if (renderedMessageCount === 0) {
+      // First load for this chat: clear and render all messages, then fade in
+      chatBox.innerHTML = "";
+      messages.forEach((msg) => {
+        renderMessageBubble(msg.role, msg.content, msg.createdAt);
+      });
+      renderedMessageCount = messages.length;
+      scrollToBottom();
+      // Fade in after DOM is painted
+      requestAnimationFrame(() => {
+        chatBox.style.opacity = '1';
+      });
+    } else if (messages.length > renderedMessageCount) {
+      // Only append new messages — no flicker, no re-render
+      const newMessages = messages.slice(renderedMessageCount);
+      newMessages.forEach((msg) => {
+        renderMessageBubble(msg.role, msg.content, msg.createdAt);
+      });
+      renderedMessageCount = messages.length;
+      scrollToBottom();
+    }
   });
 }
 
@@ -223,17 +242,19 @@ function renderChatsSidebar(chats) {
     // Delete Event Binding
     btnDelete.addEventListener("click", async (e) => {
       e.stopPropagation(); // Avoid choosing the chat item
-      
+
       const confirmDelete = confirm("Apakah Anda yakin ingin menghapus obrolan ini beserta seluruh riwayat pesannya?");
       if (!confirmDelete) return;
 
       try {
         await deleteChat(chat.id);
-        
+
         // If the active chat was deleted, reset focus
         if (activeChatId === chat.id) {
           activeChatId = null;
           chatBox.innerHTML = "";
+          chatBox.style.opacity = '1';
+          renderedMessageCount = 0;
           activeChatTitle.textContent = "Catatan Keuangan";
           showEmptyChatState();
         }
@@ -386,6 +407,8 @@ loginForm.addEventListener("submit", async (e) => {
   } catch (error) {
     showAlert(getFriendlyAuthErrorMessage(error.code), "error");
     setAuthLoadingState(loginForm, false);
+  } finally {
+    setAuthLoadingState(loginForm, false);
   }
 });
 
@@ -409,6 +432,13 @@ registerForm.addEventListener("submit", async (e) => {
     registerForm.reset();
   } catch (error) {
     showAlert(getFriendlyAuthErrorMessage(error.code), "error");
+    setAuthLoadingState(registerForm, false);
+  } finally {
+    tabBtnLogin.classList.add("active");
+    tabBtnRegister.classList.remove("active");
+    loginForm.classList.remove("hidden");
+    registerForm.classList.add("hidden");
+    hideAlert();
     setAuthLoadingState(registerForm, false);
   }
 });
@@ -517,7 +547,7 @@ chatForm.addEventListener("submit", async (e) => {
         // Render local red bubble error details
         renderLocalErrorMessage(responseContent);
       }
-      
+
       // If success, the real-time messages listener will automatically fetch the DB save and render
     }
   );
@@ -536,7 +566,7 @@ chatBox.addEventListener("click", async (e) => {
   if (e.target.classList.contains("copy-code-btn")) {
     const btn = e.target;
     const codeBlock = btn.closest(".code-container").querySelector("code");
-    
+
     if (!codeBlock) return;
 
     try {
@@ -551,7 +581,7 @@ chatBox.addEventListener("click", async (e) => {
     } catch (err) {
       console.error("Gagal menyalin kode:", err);
       btn.textContent = "Gagal";
-      setTimeout(() => { btn.textContent = "Salin"; }, 2000);
+      setTimeout(() => {btn.textContent = "Salin";}, 2000);
     }
   }
 });
