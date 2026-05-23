@@ -234,7 +234,7 @@ function renderChatsSidebar(chats) {
         if (activeChatId === chat.id) {
           activeChatId = null;
           chatBox.innerHTML = "";
-          activeChatTitle.textContent = "Konsultasi Keuangan";
+          activeChatTitle.textContent = "Catatan Keuangan";
           showEmptyChatState();
         }
       } catch (err) {
@@ -461,7 +461,7 @@ function setAuthLoadingState(formEl, isLoading) {
 btnNewChat.addEventListener("click", async () => {
   if (!currentUser) return;
 
-  const defaultTitle = `Konsultasi Finansial #${activeChats.length + 1}`;
+  const defaultTitle = `Catatan Keuangan #${activeChats.length + 1}`;
   const title = prompt("Masukkan topik obrolan keuangan Anda:", defaultTitle);
 
   if (title === null) return; // Canceled

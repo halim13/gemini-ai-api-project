@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FinanceAI - Asisten Keuangan Pribadi Anda</title>
+  <title>FinanceAI - Catatan Keuangan Pribadi</title>
   
   <!-- Premium Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,7 +37,7 @@
           </svg>
         </div>
         <h1>FinanceAI</h1>
-        <p class="auth-subtitle">Kelola Finansial Anda dengan Kecerdasan Buatan</p>
+        <p class="auth-subtitle">Catat & Pantau Keuangan Pribadi Anda</p>
       </div>
 
       <!-- Auth Action Tabs -->
@@ -160,12 +160,12 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5h.007v.008H3.75V4.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3 10.5h18M3 14.25h18M16.5 5.25h3.75m-3.75 3h3.75m-3.75 3h3.75M4.875 18.75A2.625 2.625 0 112.25 16.125c0 1.45.98 2.667 2.32 2.89L4.875 18.75z" />
             </svg>
           </div>
-          <h3>Selamat Datang di FinanceAI</h3>
-          <p>Tanyakan apa saja seputar perencanaan finansial Anda. Kami siap membantu Anda membuat keputusan finansial cerdas.</p>
+          <h3>Catatan Keuangan Saya</h3>
+          <p>Catat pemasukan dan pengeluaran Anda. Saya akan menghitung sisa saldo secara otomatis.</p>
           <div class="suggested-prompts">
-            <button class="suggested-prompt-btn">"Buatkan anggaran bulanan gaji 10 juta"</button>
-            <button class="suggested-prompt-btn">"Berapa rasio tabungan yang sehat?"</button>
-            <button class="suggested-prompt-btn">"Bagaimana cara menghitung dana darurat?"</button>
+            <button class="suggested-prompt-btn">Gaji bulan ini 10 juta</button>
+            <button class="suggested-prompt-btn">Pengeluaran 200rb untuk seblak</button>
+            <button class="suggested-prompt-btn">Berapa sisa uang saya bulan ini?</button>
           </div>
         </div>
       </div>
@@ -173,7 +173,7 @@
       <!-- Typing Indicator Box -->
       <div id="typing-indicator" class="typing-indicator-container hidden">
         <div class="typing-bubble">
-          <span class="typing-text">FinanceAI sedang menganalisis</span>
+          <span class="typing-text">Menghitung</span>
           <span class="dot-flashing"></span>
         </div>
       </div>
@@ -184,7 +184,7 @@
           <input 
             type="text" 
             id="user-input" 
-            placeholder="Ketik pesan Anda di sini (misal: analisis gaji saya 10 juta)..." 
+            placeholder="Contoh: gaji bulan ini 10 juta / pengeluaran 200rb untuk makan" 
             autocomplete="off" 
             required 
           />
