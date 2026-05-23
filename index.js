@@ -74,6 +74,17 @@ app.post('/generate-from-file', upload.any(), async (req, res) => {
   }
 })
 
+// Securely expose Firebase client config from env variables to the client
+app.get('/api/config', (req, res) => {
+  res.status(200).json({
+    apiKey: process.env.FIREBASE_API_KEY || "",
+    authDomain: process.env.FIREBASE_AUTH_DOMAIN || "",
+    projectId: process.env.FIREBASE_PROJECT_ID || "",
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "",
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "",
+    appId: process.env.FIREBASE_APP_ID || ""
+  });
+});
 
 app.post('/api/chat', async (req, res) => {
   const {conversation} = req.body
@@ -108,7 +119,24 @@ app.post('/api/chat', async (req, res) => {
       contents,
       config: {
         temperature: 0.9,
-        systemInstruction: "Jawab hanya menggunakan bahasa Indonesia."
+        systemInstruction: `You are a Personal Finance Assistant.
+
+Responsibilities:
+* Analyze income and expenses.
+* Create monthly budgets.
+* Calculate savings ratios.
+* Suggest emergency fund targets.
+* Explain debt management.
+* Explain investment risks.
+* Help users plan short-term and long-term finances.
+* Always answer in Indonesian.
+
+Rules:
+* Never guarantee investment profits.
+* Always explain risks.
+* Provide calculations when possible.
+* Format answers clearly.
+* Be educational and practical.`
       }
     })
 
