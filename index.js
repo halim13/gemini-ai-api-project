@@ -3,6 +3,7 @@ import "dotenv/config"
 import express from "express"
 import multer from "multer"
 import cors from "cors"
+import serverlessHttp from "serverless-http"
 
 
 const app = express()
@@ -175,3 +176,5 @@ app.post('/api/chat/conversation', async (req, res) => {
     res.status(500).json({message: error.message})
   }
 })
+
+module.exports.handler = serverless(app)

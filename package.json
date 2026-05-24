@@ -5,7 +5,8 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "multer": "^2.1.1",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "serverless-http": "^4.0.0"
   },
   "name": "chat-bot",
   "version": "1.0.0",
