@@ -755,6 +755,72 @@ body {
   border-bottom-left-radius: 4px;
 }
 
+/* Premium Error Bubble and Retry Button styling */
+.message-bubble.error-bubble {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+  border: 1px solid rgba(239, 68, 68, 0.25) !important;
+  color: #f87171 !important;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.message-bubble.error-bubble .error-text {
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.btn-retry-chat {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: var(--transition-smooth);
+}
+
+.btn-retry-chat:hover {
+  background-color: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.btn-retry-chat:active {
+  transform: translateY(0);
+}
+
+.btn-retry-chat .retry-icon {
+  transition: transform 0.5s ease;
+}
+
+.btn-retry-chat:hover .retry-icon {
+  transform: rotate(180deg);
+}
+
+/* Blue Accent Overrides for Dapatkan Jawaban Retry Button */
+.btn-retry-chat.btn-retry-accent {
+  background-color: rgba(59, 130, 246, 0.12) !important;
+  border: 1px solid rgba(59, 130, 246, 0.25) !important;
+  color: var(--color-primary) !important;
+}
+
+.btn-retry-chat.btn-retry-accent:hover {
+  background-color: rgba(59, 130, 246, 0.22) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  color: white !important;
+}
+
+
+
 /* Message timestamps */
 .message-timestamp {
   font-size: 0.72rem;

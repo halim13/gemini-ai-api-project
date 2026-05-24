@@ -88,3 +88,65 @@ export async function executeChatFlow(chatId, userMessageText, onThinkingStarted
     onThinkingFinished("Failed to get response from server.", false);
   }
 }
+
+/**
+ * Executes a retry flow on a failed backend call.
+ * Reuses the existing historical messages (which include the last user prompt)
+ * without writing any new user message to Firestore.
+ * 
+ * @param {string} chatId - The ID of the active chat.
+ * @param {function(): void} onThinkingStarted - Callback when the API call is initiated.
+ * @param {function(string, boolean): void} onThinkingFinished - Callback when completed.
+ * @returns {Promise<void>}
+ */
+export async function executeRetryFlow(chatId, onThinkingStarted, onThinkingFinished) {
+  try {
+    // 1. Fire callback to show "Thinking..." loading indicator in the DOM
+    onThinkingStarted();
+
+    // 2. Load all historical messages for this conversation to feed the LLM context
+    const history = await getMessagesOnce(chatId);
+
+    // 3. Map Firestore schemas to backend specification:
+    const conversationPayload = history.map((msg) => {
+      const backendRole = msg.role === "assistant" ? "model" : "user";
+      return {
+        role: backendRole,
+        text: msg.content
+      };
+    });
+
+    // 4. Send POST request to /api/chat
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ conversation: conversationPayload })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // 5. Inspect response content and finalize UI/Firestore transaction
+    if (data && data.result && data.result.trim()) {
+      const aiReply = data.result.trim();
+      
+      // Save AI's reply to Firestore (real-time listeners will display this in the UI automatically)
+      await saveMessage(chatId, "assistant", aiReply);
+      
+      // Notify UI that thinking is complete with the successful response
+      onThinkingFinished(aiReply, true);
+    } else {
+      // Empty response handler
+      onThinkingFinished("Sorry, no response received.", false);
+    }
+  } catch (error) {
+    console.error("Retry flow execution failed:", error);
+    // Error handler
+    onThinkingFinished("Failed to get response from server.", false);
+  }
+}

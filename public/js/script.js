@@ -18,7 +18,7 @@ import {
   listenToMessages
 } from "./firestore.js"
 
-import {executeChatFlow} from "./chat.js"
+import {executeChatFlow, executeRetryFlow} from "./chat.js"
 
 // =========================================================================
 // Application State
@@ -29,6 +29,7 @@ let activeChats = []
 let unsubscribeChats = null
 let unsubscribeMessages = null
 let renderedMessageCount = 0 // Track rendered messages to avoid full re-renders
+let lastRetryMessage = null; // Store the last message that failed to be resent
 
 // =========================================================================
 // DOM Element Selectors
@@ -193,6 +194,9 @@ function setupMessagesListener(chatId) {
       renderedMessageCount = messages.length
       scrollToBottom()
     }
+
+    // Always check and render a retry option if the last message has no reply
+    checkAndRenderRetryButton(messages)
   })
 }
 
@@ -283,6 +287,9 @@ function renderChatsSidebar(chats) {
 function selectChat(chatId) {
   activeChatId = chatId
 
+  // Clean any local stale error bubbles from view on chat selection
+  removeLocalErrorMessages()
+
   // Toggle CSS active tags in sidebar immediately for instant feedback
   document.querySelectorAll(".chat-item").forEach((el) => {
     el.classList.toggle("active", el.getAttribute("data-id") === chatId)
@@ -343,22 +350,107 @@ function renderMessageBubble(role, content, timestamp) {
 }
 
 /**
+ * Remove any existing local error message bubbles from the chat container.
+ */
+function removeLocalErrorMessages() {
+  document.querySelectorAll(".error-message-row").forEach((el) => {
+    el.remove()
+  })
+}
+
+/**
+ * Checks if the last message in the list is from the user and has no reply.
+ * If so, and we are not currently loading a response, renders a retry prompt.
+ * 
+ * @param {Array} messages 
+ */
+function checkAndRenderRetryButton(messages) {
+  // Always clean up existing retry elements first
+  removeLocalErrorMessages()
+
+  if (!messages || messages.length === 0) return
+
+  const lastMessage = messages[messages.length - 1]
+  
+  // If the last message is from the user AND we are not currently loading/typing
+  const isCurrentlyLoading = userInput.disabled
+  
+  if (lastMessage.role === "user" && !isCurrentlyLoading) {
+    const row = document.createElement("div")
+    row.className = "message-row bot error-message-row"
+
+    const bubble = document.createElement("div")
+    bubble.className = "message-bubble error-bubble"
+    bubble.style.backgroundColor = "rgba(59, 130, 246, 0.08)"
+    bubble.style.border = "1px solid rgba(59, 130, 246, 0.25)"
+    bubble.style.color = "var(--text-muted)"
+    bubble.style.display = "flex"
+    bubble.style.flexDirection = "column"
+    bubble.style.gap = "12px"
+
+    const promptText = document.createElement("div")
+    promptText.className = "error-text"
+    promptText.textContent = "Pesan ini belum memiliki jawaban dari asisten keuangan."
+    bubble.appendChild(promptText)
+
+    const retryBtn = document.createElement("button")
+    retryBtn.type = "button"
+    retryBtn.className = "btn-retry-chat btn-retry-accent"
+    retryBtn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="retry-icon">
+        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+      </svg>
+      <span>Dapatkan Jawaban</span>
+    `
+
+    retryBtn.addEventListener("click", () => {
+      handleRetry()
+    })
+
+    bubble.appendChild(retryBtn)
+    row.appendChild(bubble)
+    chatBox.appendChild(row)
+    scrollToBottom()
+  }
+}
+
+/**
  * Append a custom error message directly in the UI if an API call fails.
  * Does not write to Firestore to keep logs pure.
+ * Includes a premium "Retry/Coba Lagi" reload button.
  * 
  * @param {string} text - Error message text.
  */
 function renderLocalErrorMessage(text) {
+  // Remove any stale errors first
+  removeLocalErrorMessages()
+
   const row = document.createElement("div")
-  row.className = "message-row bot"
+  row.className = "message-row bot error-message-row"
 
   const bubble = document.createElement("div")
-  bubble.className = "message-bubble"
-  bubble.style.backgroundColor = "rgba(239, 68, 68, 0.12)"
-  bubble.style.border = "1px solid rgba(239, 68, 68, 0.3)"
-  bubble.style.color = "#f87171"
-  bubble.textContent = text
+  bubble.className = "message-bubble error-bubble"
 
+  const errorText = document.createElement("div")
+  errorText.className = "error-text"
+  errorText.textContent = text
+  bubble.appendChild(errorText)
+
+  const retryBtn = document.createElement("button")
+  retryBtn.type = "button"
+  retryBtn.className = "btn-retry-chat"
+  retryBtn.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="retry-icon">
+      <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+    </svg>
+    <span>Coba Lagi</span>
+  `
+
+  retryBtn.addEventListener("click", () => {
+    handleRetry()
+  })
+
+  bubble.appendChild(retryBtn)
   row.appendChild(bubble)
   chatBox.appendChild(row)
   scrollToBottom()
@@ -526,6 +618,9 @@ chatForm.addEventListener("submit", async (e) => {
   const userPrompt = userInput.value.trim()
   if (!userPrompt || !currentUser) return
 
+  // Clear previous error messages when sending a new prompt
+  removeLocalErrorMessages()
+
   // Ensure an active chat ID is loaded.
   // If not, automatically provision a new chat in the background
   let chatId = activeChatId
@@ -567,6 +662,39 @@ chatForm.addEventListener("submit", async (e) => {
     }
   )
 })
+
+/**
+ * Handles the click event for the "Coba Lagi" (Retry) button.
+ * Clears the error bubble and retries the last transaction by calling executeRetryFlow.
+ */
+async function handleRetry() {
+  if (!activeChatId || !currentUser) return
+
+  // Remove the existing error messages immediately
+  removeLocalErrorMessages()
+
+  // Block form controls to avoid double submissions during retry
+  setInputState(true)
+
+  // Execute the retry flow (without adding duplicate user prompt to Firestore)
+  await executeRetryFlow(
+    activeChatId,
+    // onThinkingStarted callback
+    () => {
+      showTypingIndicator(true)
+    },
+    // onThinkingFinished callback
+    (responseContent, isSuccess) => {
+      showTypingIndicator(false)
+      setInputState(false)
+
+      if (!isSuccess) {
+        // If retry failed, show the error message with retry button again
+        renderLocalErrorMessage(responseContent)
+      }
+    }
+  )
+}
 
 // Suggested Prompt click bindings
 document.querySelectorAll(".suggested-prompt-btn").forEach((btn) => {
