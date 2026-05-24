@@ -1,20 +1,229 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gemini AI Chatbot</title>
-  <link rel="stylesheet" href="style.css"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinanceAI - Catatan Keuangan Pribadi</title>
+
+  <!-- Premium Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+    integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
-  <div class="container">
-    <h1>Gemini AI Chatbot</h1>
-    <div id="chat-box" class="chat-box"></div>
-    <form id="chat-form">
-      <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off" required />
-      <button type="submit">Send</button>
-    </form>
+
+  <!-- Full-Page Background Decorative Elements -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <!-- MAIN LOADING SPINNER (Initial bootstrap) -->
+  <div id="app-loading" class="app-loading-overlay">
+    <div class="spinner-container">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Memuat FinanceAI...</p>
+    </div>
   </div>
-  <script src="script.js"></script>
+
+  <!-- AUTHENTICATION SCREEN -->
+  <div id="auth-screen" class="auth-container hidden">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="logo-mark">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z"
+              fill="currentColor" />
+          </svg>
+        </div>
+        <h1>FinanceAI</h1>
+        <p class="auth-subtitle">Catat & Pantau Keuangan Pribadi Anda</p>
+      </div>
+
+      <!-- Auth Action Tabs -->
+      <div class="auth-tabs">
+        <button type="button" id="tab-btn-login" class="tab-btn active">Masuk</button>
+        <button type="button" id="tab-btn-register" class="tab-btn">Daftar</button>
+      </div>
+
+      <!-- Alert Message Box -->
+      <div id="auth-alert" class="alert-box hidden"></div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="auth-form">
+        <div class="form-group">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" placeholder="nama@email.com" autocomplete="username" required />
+        </div>
+        <div class="form-group">
+          <label for="login-password">Kata Sandi</label>
+
+          <div class="password-wrapper">
+            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"
+              required />
+            <button type="button" class="toggle-password" id="toggle-password" data-target="login-password">
+              <i class="fa fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary auth-submit-btn">
+          <span>Masuk ke Akun</span>
+          <div class="mini-spinner hidden"></div>
+        </button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-form" class="auth-form hidden">
+        <div class="form-group">
+          <label for="register-name">Nama Lengkap</label>
+          <input type="text" id="register-name" placeholder="Budi Santoso" autocomplete="name" required />
+        </div>
+        <div class="form-group">
+          <label for="register-email">Email</label>
+          <input type="email" id="register-email" placeholder="nama@email.com" autocomplete="username" required />
+        </div>
+        <div class="form-group">
+          <label for="login-password">Kata Sandi</label>
+
+          <div class="password-wrapper">
+            <input type="password" id="register-password" placeholder="Minimal 6 karakter" autocomplete="new-password"
+              required />
+            <button type="button" class="toggle-password" id="toggle-password" data-target="register-password">
+              <i class="fa fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary auth-submit-btn">
+          <span>Buat Akun Baru</span>
+          <div class="mini-spinner hidden"></div>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- CHAT DASHBOARD SCREEN -->
+  <div id="chat-screen" class="dashboard-container hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <!-- Sidebar Header -->
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z"
+                fill="currentColor" />
+            </svg>
+          </div>
+          <span class="brand-name">FinanceAI</span>
+        </div>
+        <button type="button" id="btn-new-chat" class="btn-new-chat" title="Mulai Obrolan Baru">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Obrolan Baru</span>
+        </button>
+      </div>
+
+      <!-- Real-time Active Chats List -->
+      <div class="chats-list-container">
+        <h3 class="sidebar-section-title">Riwayat Obrolan</h3>
+        <div id="chats-list" class="chats-list">
+          <!-- Populated in script.js -->
+        </div>
+      </div>
+
+      <!-- User Profile & Logout -->
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar" id="user-avatar-initials">U</div>
+          <div class="user-info">
+            <span class="user-display-name" id="user-display-name">User</span>
+            <span class="user-email" id="user-email">user@email.com</span>
+          </div>
+        </div>
+        <button type="button" id="btn-logout" class="btn-logout" title="Keluar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CHAT PANEL -->
+    <main class="chat-panel">
+      <!-- Chat Header -->
+      <header class="chat-header">
+        <div class="active-chat-meta">
+          <h2 id="active-chat-title" class="active-chat-title">Konsultasi Keuangan</h2>
+          <span class="chat-status">
+            <span class="status-dot online"></span>
+            <span id="chat-status-text">Sinkronisasi Firestore Aktif</span>
+          </span>
+        </div>
+      </header>
+
+      <!-- Message History Container -->
+      <div id="chat-box" class="chat-box">
+        <!-- Welcoming placeholder for Empty States -->
+        <div id="empty-chat-state" class="empty-state">
+          <div class="empty-state-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5h.007v.008H3.75V4.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3 10.5h18M3 14.25h18M16.5 5.25h3.75m-3.75 3h3.75m-3.75 3h3.75M4.875 18.75A2.625 2.625 0 112.25 16.125c0 1.45.98 2.667 2.32 2.89L4.875 18.75z" />
+            </svg>
+          </div>
+          <h3>Catatan Keuangan Saya</h3>
+          <p>Catat pemasukan dan pengeluaran Anda. Saya akan menghitung sisa saldo secara otomatis.</p>
+          <div class="suggested-prompts">
+            <button class="suggested-prompt-btn">Gaji bulan ini 10 juta</button>
+            <button class="suggested-prompt-btn">Pengeluaran 200rb untuk seblak</button>
+            <button class="suggested-prompt-btn">Berapa sisa uang saya bulan ini?</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Typing Indicator Box -->
+      <div id="typing-indicator" class="typing-indicator-container hidden">
+        <div class="typing-bubble">
+          <span class="typing-text">Menghitung</span>
+          <span class="dot-flashing"></span>
+        </div>
+      </div>
+
+      <!-- Chat Bottom Input Form -->
+      <footer class="chat-footer">
+        <form id="chat-form" class="chat-form">
+          <input type="text" id="user-input"
+            placeholder="Contoh: gaji bulan ini 10 juta / pengeluaran 200rb untuk makan" autocomplete="off" required />
+          <button type="submit" id="btn-send" class="btn-send" title="Kirim Pesan">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </form>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Bootstrapping main script -->
+  <script type="module" src="js/script.js"></script>
 </body>
+
 </html>
