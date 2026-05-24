@@ -8,7 +8,9 @@ import serverlessHttp from "serverless-http"
 
 const app = express()
 const upload = multer()
-const ai = new GoogleGenAI({})
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY
+})
 
 const GEMINI_MODEL = "gemini-3.5-flash"
 
