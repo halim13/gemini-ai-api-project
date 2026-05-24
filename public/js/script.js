@@ -287,7 +287,7 @@ function renderChatsSidebar(chats) {
 
       try {
         await renameChat(chat.id, newTitle)
-        
+
         // If the renamed chat is the currently active one, update the header title as well
         if (activeChatId === chat.id) {
           activeChatTitle.textContent = newTitle.trim()
@@ -428,10 +428,10 @@ function checkAndRenderRetryButton(messages) {
   if (!messages || messages.length === 0) return
 
   const lastMessage = messages[messages.length - 1]
-  
+
   // If the last message is from the user AND we are not currently loading/typing
   const isCurrentlyLoading = userInput.disabled
-  
+
   if (lastMessage.role === "user" && !isCurrentlyLoading) {
     const row = document.createElement("div")
     row.className = "message-row bot error-message-row"
@@ -548,7 +548,7 @@ function resetPassword() {
     )
 
     input.type = 'password'
-    button.innerHTML = '<i class="fa fa-eye"></i>'
+    button.innerHTML = '<i class="fa fa-eye-slash"></i>'
   })
 }
 
@@ -949,8 +949,8 @@ document.querySelectorAll('.toggle-password').forEach(button => {
 
     input.type = isPassword ? 'text' : 'password'
     button.innerHTML = isPassword
-      ? '<i class="fa fa-eye-slash"></i>'
-      : '<i class="fa fa-eye"></i>'
+      ? '<i class="fa fa-eye"></i>'
+      : '<i class="fa fa-eye-slash"></i>'
   })
 })
 
@@ -961,14 +961,14 @@ document.querySelectorAll('.toggle-password').forEach(button => {
 // Open Settings Modal
 btnUserSettings.addEventListener("click", () => {
   if (!currentUser) return
-  
+
   // Set current visual values in form
   settingsName.value = currentUser.displayName || ""
   settingsPassword.value = ""
-  
+
   // Hide any existing stale alert boxes
   hideSettingsAlert()
-  
+
   // Display settings modal
   settingsModal.classList.remove("hidden")
 })
@@ -1021,7 +1021,7 @@ settingsForm.addEventListener("submit", async (e) => {
   const btn = settingsForm.querySelector(".settings-submit-btn")
   const textSpan = btn.querySelector("span")
   const spinner = btn.querySelector(".mini-spinner")
-  
+
   btn.disabled = true
   textSpan.style.opacity = "0.5"
   spinner.classList.remove("hidden")
@@ -1034,7 +1034,7 @@ settingsForm.addEventListener("submit", async (e) => {
     // 1. Update Display Name if modified
     if (nameChanged) {
       await updateUserDisplayName(newName)
-      
+
       // Update sidebar UI in real-time
       userDisplayName.textContent = newName
       userAvatarInitials.textContent = newName
@@ -1052,10 +1052,10 @@ settingsForm.addEventListener("submit", async (e) => {
 
     if (nameChanged || passwordChanged) {
       showSettingsAlert("Perubahan profil berhasil disimpan!", "success")
-      
+
       // Clear password field
       settingsPassword.value = ""
-      
+
       // Reset eye toggles
       resetPassword()
 
@@ -1078,4 +1078,3 @@ settingsForm.addEventListener("submit", async (e) => {
     spinner.classList.add("hidden")
   }
 })
-
