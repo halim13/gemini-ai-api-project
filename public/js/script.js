@@ -9,55 +9,55 @@ import {
   registerUser,
   loginUser,
   logoutUser
-} from "./auth.js";
+} from "./auth.js"
 
 import {
   createChat,
   deleteChat,
   listenToChats,
   listenToMessages
-} from "./firestore.js";
+} from "./firestore.js"
 
-import {executeChatFlow} from "./chat.js";
+import {executeChatFlow} from "./chat.js"
 
 // =========================================================================
 // Application State
 // =========================================================================
-let currentUser = null;
-let activeChatId = null;
-let activeChats = [];
-let unsubscribeChats = null;
-let unsubscribeMessages = null;
-let renderedMessageCount = 0; // Track rendered messages to avoid full re-renders
+let currentUser = null
+let activeChatId = null
+let activeChats = []
+let unsubscribeChats = null
+let unsubscribeMessages = null
+let renderedMessageCount = 0 // Track rendered messages to avoid full re-renders
 
 // =========================================================================
 // DOM Element Selectors
 // =========================================================================
-const appLoading = document.getElementById("app-loading");
-const authScreen = document.getElementById("auth-screen");
-const chatScreen = document.getElementById("chat-screen");
+const appLoading = document.getElementById("app-loading")
+const authScreen = document.getElementById("auth-screen")
+const chatScreen = document.getElementById("chat-screen")
 
 // Auth Form elements
-const loginForm = document.getElementById("login-form");
-const registerForm = document.getElementById("register-form");
-const tabBtnLogin = document.getElementById("tab-btn-login");
-const tabBtnRegister = document.getElementById("tab-btn-register");
-const authAlert = document.getElementById("auth-alert");
+const loginForm = document.getElementById("login-form")
+const registerForm = document.getElementById("register-form")
+const tabBtnLogin = document.getElementById("tab-btn-login")
+const tabBtnRegister = document.getElementById("tab-btn-register")
+const authAlert = document.getElementById("auth-alert")
 
 // Dashboard/Chat Panel elements
-const btnLogout = document.getElementById("btn-logout");
-const btnNewChat = document.getElementById("btn-new-chat");
-const chatsList = document.getElementById("chats-list");
-const chatBox = document.getElementById("chat-box");
-const chatForm = document.getElementById("chat-form");
-const userInput = document.getElementById("user-input");
-const btnSend = document.getElementById("btn-send");
-const typingIndicator = document.getElementById("typing-indicator");
-const activeChatTitle = document.getElementById("active-chat-title");
-const userDisplayName = document.getElementById("user-display-name");
-const userEmail = document.getElementById("user-email");
-const userAvatarInitials = document.getElementById("user-avatar-initials");
-const emptyChatState = document.getElementById("empty-chat-state");
+const btnLogout = document.getElementById("btn-logout")
+const btnNewChat = document.getElementById("btn-new-chat")
+const chatsList = document.getElementById("chats-list")
+const chatBox = document.getElementById("chat-box")
+const chatForm = document.getElementById("chat-form")
+const userInput = document.getElementById("user-input")
+const btnSend = document.getElementById("btn-send")
+const typingIndicator = document.getElementById("typing-indicator")
+const activeChatTitle = document.getElementById("active-chat-title")
+const userDisplayName = document.getElementById("user-display-name")
+const userEmail = document.getElementById("user-email")
+const userAvatarInitials = document.getElementById("user-avatar-initials")
+const emptyChatState = document.getElementById("empty-chat-state")
 
 // =========================================================================
 // Initialization and Authentication Listeners
@@ -66,54 +66,54 @@ const emptyChatState = document.getElementById("empty-chat-state");
 // Start reactive auth listener on startup
 onAuthStateChangedListener((user) => {
   // Hide initial loading screen
-  appLoading.classList.add("hidden");
+  appLoading.classList.add("hidden")
 
   if (user) {
-    currentUser = user;
+    currentUser = user
 
     // Configure user details in sidebar
-    userDisplayName.textContent = user.displayName || "User";
-    userEmail.textContent = user.email;
+    userDisplayName.textContent = user.displayName || "User"
+    userEmail.textContent = user.email
     userAvatarInitials.textContent = (user.displayName || "U")
       .split(" ")
       .map(n => n[0])
       .join("")
       .toUpperCase()
-      .substring(0, 2);
+      .substring(0, 2)
 
     // Switch screen layouts
-    authScreen.classList.add("hidden");
-    chatScreen.classList.remove("hidden");
+    authScreen.classList.add("hidden")
+    chatScreen.classList.remove("hidden")
 
     // Establish real-time listener for user's chats
-    setupChatsListener(user.uid);
+    setupChatsListener(user.uid)
   } else {
-    currentUser = null;
-    activeChatId = null;
+    currentUser = null
+    activeChatId = null
 
     // Reset local cache & listeners
-    cleanupListeners();
-    chatsList.innerHTML = "";
-    chatBox.innerHTML = "";
+    cleanupListeners()
+    chatsList.innerHTML = ""
+    chatBox.innerHTML = ""
 
     // Switch layouts
-    chatScreen.classList.add("hidden");
-    authScreen.classList.remove("hidden");
+    chatScreen.classList.add("hidden")
+    authScreen.classList.remove("hidden")
   }
-});
+})
 
 // Clean up Firestore Snapshot listeners
 function cleanupListeners() {
   if (unsubscribeChats) {
-    unsubscribeChats();
-    unsubscribeChats = null;
+    unsubscribeChats()
+    unsubscribeChats = null
   }
   if (unsubscribeMessages) {
-    unsubscribeMessages();
-    unsubscribeMessages = null;
+    unsubscribeMessages()
+    unsubscribeMessages = null
   }
-  renderedMessageCount = 0;
-  chatBox.style.opacity = '1';
+  renderedMessageCount = 0
+  chatBox.style.opacity = '1'
 }
 
 // =========================================================================
@@ -126,19 +126,19 @@ function cleanupListeners() {
  * @param {string} uid - The logged in user's UID.
  */
 function setupChatsListener(uid) {
-  cleanupListeners();
+  cleanupListeners()
 
   unsubscribeChats = listenToChats(uid, (chats) => {
-    activeChats = chats;
-    renderChatsSidebar(chats);
+    activeChats = chats
+    renderChatsSidebar(chats)
 
     // Auto-select the first chat if none is active and chats exist
     if (!activeChatId && chats.length > 0) {
-      selectChat(chats[0].id);
+      selectChat(chats[0].id)
     } else if (chats.length === 0) {
-      showEmptyChatState();
+      showEmptyChatState()
     }
-  });
+  })
 }
 
 /**
@@ -148,52 +148,52 @@ function setupChatsListener(uid) {
  */
 function setupMessagesListener(chatId) {
   if (unsubscribeMessages) {
-    unsubscribeMessages();
+    unsubscribeMessages()
   }
 
   // Reset rendered count for new chat
-  renderedMessageCount = 0;
+  renderedMessageCount = 0
 
   // Fade out smoothly instead of wiping DOM with a spinner
-  chatBox.style.opacity = '0';
-  chatBox.style.transition = 'opacity 0.15s ease';
+  chatBox.style.opacity = '0'
+  chatBox.style.transition = 'opacity 0.15s ease'
 
   unsubscribeMessages = listenToMessages(chatId, (messages) => {
     // Check if active chat has changed in between async loads
-    if (activeChatId !== chatId) return;
+    if (activeChatId !== chatId) return
 
     if (messages.length === 0) {
-      chatBox.innerHTML = "";
-      chatBox.style.opacity = '1';
-      showEmptyChatState();
-      renderedMessageCount = 0;
-      return;
+      chatBox.innerHTML = ""
+      chatBox.style.opacity = '1'
+      showEmptyChatState()
+      renderedMessageCount = 0
+      return
     }
 
-    if (emptyChatState) emptyChatState.classList.add("hidden");
+    if (emptyChatState) emptyChatState.classList.add("hidden")
 
     if (renderedMessageCount === 0) {
       // First load for this chat: clear and render all messages, then fade in
-      chatBox.innerHTML = "";
+      chatBox.innerHTML = ""
       messages.forEach((msg) => {
-        renderMessageBubble(msg.role, msg.content, msg.createdAt);
-      });
-      renderedMessageCount = messages.length;
-      scrollToBottom();
+        renderMessageBubble(msg.role, msg.content, msg.createdAt)
+      })
+      renderedMessageCount = messages.length
+      scrollToBottom()
       // Fade in after DOM is painted
       requestAnimationFrame(() => {
-        chatBox.style.opacity = '1';
-      });
+        chatBox.style.opacity = '1'
+      })
     } else if (messages.length > renderedMessageCount) {
       // Only append new messages — no flicker, no re-render
-      const newMessages = messages.slice(renderedMessageCount);
+      const newMessages = messages.slice(renderedMessageCount)
       newMessages.forEach((msg) => {
-        renderMessageBubble(msg.role, msg.content, msg.createdAt);
-      });
-      renderedMessageCount = messages.length;
-      scrollToBottom();
+        renderMessageBubble(msg.role, msg.content, msg.createdAt)
+      })
+      renderedMessageCount = messages.length
+      scrollToBottom()
     }
-  });
+  })
 }
 
 // =========================================================================
@@ -206,16 +206,16 @@ function setupMessagesListener(chatId) {
  * @param {import("./firestore.js").ChatDoc[]} chats
  */
 function renderChatsSidebar(chats) {
-  chatsList.innerHTML = "";
+  chatsList.innerHTML = ""
 
   chats.forEach((chat) => {
-    const item = document.createElement("div");
-    item.className = `chat-item ${chat.id === activeChatId ? "active" : ""}`;
-    item.setAttribute("data-id", chat.id);
+    const item = document.createElement("div")
+    item.className = `chat-item ${chat.id === activeChatId ? "active" : ""}`
+    item.setAttribute("data-id", chat.id)
 
     // Inner meta components (SVG bubble + Title)
-    const meta = document.createElement("div");
-    meta.className = "chat-item-meta";
+    const meta = document.createElement("div")
+    meta.className = "chat-item-meta"
     meta.innerHTML = `
       <span class="chat-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -223,13 +223,13 @@ function renderChatsSidebar(chats) {
         </svg>
       </span>
       <span class="chat-item-title">${escapeHTML(chat.title)}</span>
-    `;
+    `
 
     // Action button (SVG Trash Can) to delete the chat
-    const btnDelete = document.createElement("button");
-    btnDelete.type = "button";
-    btnDelete.className = "btn-delete-chat";
-    btnDelete.title = "Hapus Obrolan";
+    const btnDelete = document.createElement("button")
+    btnDelete.type = "button"
+    btnDelete.className = "btn-delete-chat"
+    btnDelete.title = "Hapus Obrolan"
     btnDelete.innerHTML = `
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="3 6 5 6 21 6"></polyline>
@@ -237,42 +237,42 @@ function renderChatsSidebar(chats) {
         <line x1="10" y1="11" x2="10" y2="17"></line>
         <line x1="14" y1="11" x2="14" y2="17"></line>
       </svg>
-    `;
+    `
 
     // Delete Event Binding
     btnDelete.addEventListener("click", async (e) => {
-      e.stopPropagation(); // Avoid choosing the chat item
+      e.stopPropagation() // Avoid choosing the chat item
 
-      const confirmDelete = confirm("Apakah Anda yakin ingin menghapus obrolan ini beserta seluruh riwayat pesannya?");
-      if (!confirmDelete) return;
+      const confirmDelete = confirm("Apakah Anda yakin ingin menghapus obrolan ini beserta seluruh riwayat pesannya?")
+      if (!confirmDelete) return
 
       try {
-        await deleteChat(chat.id);
+        await deleteChat(chat.id)
 
         // If the active chat was deleted, reset focus
         if (activeChatId === chat.id) {
-          activeChatId = null;
-          chatBox.innerHTML = "";
-          chatBox.style.opacity = '1';
-          renderedMessageCount = 0;
-          activeChatTitle.textContent = "Catatan Keuangan";
-          showEmptyChatState();
+          activeChatId = null
+          chatBox.innerHTML = ""
+          chatBox.style.opacity = '1'
+          renderedMessageCount = 0
+          activeChatTitle.textContent = "Catatan Keuangan"
+          showEmptyChatState()
         }
       } catch (err) {
-        alert("Gagal menghapus obrolan: " + err.message);
+        alert("Gagal menghapus obrolan: " + err.message)
       }
-    });
+    })
 
-    item.appendChild(meta);
-    item.appendChild(btnDelete);
+    item.appendChild(meta)
+    item.appendChild(btnDelete)
 
     // Active Selection binding
     item.addEventListener("click", () => {
-      selectChat(chat.id);
-    });
+      selectChat(chat.id)
+    })
 
-    chatsList.appendChild(item);
-  });
+    chatsList.appendChild(item)
+  })
 }
 
 /**
@@ -281,31 +281,31 @@ function renderChatsSidebar(chats) {
  * @param {string} chatId
  */
 function selectChat(chatId) {
-  activeChatId = chatId;
+  activeChatId = chatId
 
   // Toggle CSS active tags in sidebar immediately for instant feedback
   document.querySelectorAll(".chat-item").forEach((el) => {
-    el.classList.toggle("active", el.getAttribute("data-id") === chatId);
-  });
+    el.classList.toggle("active", el.getAttribute("data-id") === chatId)
+  })
 
   // Load chat title details
-  const matchingChat = activeChats.find(c => c.id === chatId);
+  const matchingChat = activeChats.find(c => c.id === chatId)
   if (matchingChat) {
-    activeChatTitle.textContent = matchingChat.title;
+    activeChatTitle.textContent = matchingChat.title
   }
 
   // Setup reactive message listener
-  setupMessagesListener(chatId);
+  setupMessagesListener(chatId)
 }
 
 /**
  * Display welcoming screen when no chat is present or chat is empty.
  */
 function showEmptyChatState() {
-  chatBox.innerHTML = "";
+  chatBox.innerHTML = ""
   if (emptyChatState) {
-    chatBox.appendChild(emptyChatState);
-    emptyChatState.classList.remove("hidden");
+    chatBox.appendChild(emptyChatState)
+    emptyChatState.classList.remove("hidden")
   }
 }
 
@@ -317,29 +317,29 @@ function showEmptyChatState() {
  * @param {import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js").Timestamp} [timestamp] - Firestore time.
  */
 function renderMessageBubble(role, content, timestamp) {
-  const row = document.createElement("div");
-  row.className = `message-row ${role === "user" ? "user" : "bot"}`;
+  const row = document.createElement("div")
+  row.className = `message-row ${role === "user" ? "user" : "bot"}`
 
-  const bubble = document.createElement("div");
-  bubble.className = "message-bubble";
-  bubble.innerHTML = parseMarkdown(content);
+  const bubble = document.createElement("div")
+  bubble.className = "message-bubble"
+  bubble.innerHTML = parseMarkdown(content)
 
-  row.appendChild(bubble);
+  row.appendChild(bubble)
 
   // Append elegant human-readable timestamps if present
   if (timestamp) {
-    const timeDiv = document.createElement("div");
-    timeDiv.className = "message-timestamp";
-    const date = timestamp.toDate();
+    const timeDiv = document.createElement("div")
+    timeDiv.className = "message-timestamp"
+    const date = timestamp.toDate()
     timeDiv.textContent = date.toLocaleTimeString("id-ID", {
       hour: "2-digit",
       minute: "2-digit"
-    });
-    row.appendChild(timeDiv);
+    })
+    row.appendChild(timeDiv)
   }
 
-  chatBox.appendChild(row);
-  scrollToBottom();
+  chatBox.appendChild(row)
+  scrollToBottom()
 }
 
 /**
@@ -349,26 +349,26 @@ function renderMessageBubble(role, content, timestamp) {
  * @param {string} text - Error message text.
  */
 function renderLocalErrorMessage(text) {
-  const row = document.createElement("div");
-  row.className = "message-row bot";
+  const row = document.createElement("div")
+  row.className = "message-row bot"
 
-  const bubble = document.createElement("div");
-  bubble.className = "message-bubble";
-  bubble.style.backgroundColor = "rgba(239, 68, 68, 0.12)";
-  bubble.style.border = "1px solid rgba(239, 68, 68, 0.3)";
-  bubble.style.color = "#f87171";
-  bubble.textContent = text;
+  const bubble = document.createElement("div")
+  bubble.className = "message-bubble"
+  bubble.style.backgroundColor = "rgba(239, 68, 68, 0.12)"
+  bubble.style.border = "1px solid rgba(239, 68, 68, 0.3)"
+  bubble.style.color = "#f87171"
+  bubble.textContent = text
 
-  row.appendChild(bubble);
-  chatBox.appendChild(row);
-  scrollToBottom();
+  row.appendChild(bubble)
+  chatBox.appendChild(row)
+  scrollToBottom()
 }
 
 /**
  * Scroll the chat box smoothly to the absolute bottom.
  */
 function scrollToBottom() {
-  chatBox.scrollTop = chatBox.scrollHeight;
+  chatBox.scrollTop = chatBox.scrollHeight
 }
 
 // =========================================================================
@@ -377,109 +377,111 @@ function scrollToBottom() {
 
 // Switch tabs between Login & Register view
 tabBtnLogin.addEventListener("click", () => {
-  tabBtnLogin.classList.add("active");
-  tabBtnRegister.classList.remove("active");
-  loginForm.classList.remove("hidden");
-  registerForm.classList.add("hidden");
-  hideAlert();
-});
+  loginClick()
+})
 
 tabBtnRegister.addEventListener("click", () => {
-  tabBtnRegister.classList.add("active");
-  tabBtnLogin.classList.remove("active");
-  registerForm.classList.remove("hidden");
-  loginForm.classList.add("hidden");
-  hideAlert();
-});
+  registerClick()
+})
+
+function loginClick() {
+  tabBtnLogin.classList.add("active")
+  tabBtnRegister.classList.remove("active")
+  loginForm.classList.remove("hidden")
+  registerForm.classList.add("hidden")
+  hideAlert()
+}
+
+function registerClick() {
+  tabBtnRegister.classList.add("active")
+  tabBtnLogin.classList.remove("active")
+  registerForm.classList.remove("hidden")
+  loginForm.classList.add("hidden")
+  hideAlert()
+}
 
 // Login Form Submit handler
 loginForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const email = document.getElementById("login-email").value.trim();
-  const password = document.getElementById("login-password").value;
+  e.preventDefault()
+  const email = document.getElementById("login-email").value.trim()
+  const password = document.getElementById("login-password").value
 
-  setAuthLoadingState(loginForm, true);
-  hideAlert();
+  setAuthLoadingState(loginForm, true)
+  hideAlert()
 
   try {
-    await loginUser(email, password);
-    loginForm.reset();
+    await loginUser(email, password)
+    loginForm.reset()
   } catch (error) {
-    showAlert(getFriendlyAuthErrorMessage(error.code), "error");
-    setAuthLoadingState(loginForm, false);
+    showAlert(getFriendlyAuthErrorMessage(error.code), "error")
   } finally {
-    setAuthLoadingState(loginForm, false);
+    setAuthLoadingState(loginForm, false)
   }
-});
+})
 
 // Register Form Submit handler
 registerForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const name = document.getElementById("register-name").value.trim();
-  const email = document.getElementById("register-email").value.trim();
-  const password = document.getElementById("register-password").value;
+  e.preventDefault()
+  const name = document.getElementById("register-name").value.trim()
+  const email = document.getElementById("register-email").value.trim()
+  const password = document.getElementById("register-password").value
 
   if (password.length < 6) {
-    showAlert("Kata sandi harus terdiri dari minimal 6 karakter.", "error");
-    return;
+    showAlert("Kata sandi harus terdiri dari minimal 6 karakter.", "error")
+    return
   }
 
-  setAuthLoadingState(registerForm, true);
-  hideAlert();
+  setAuthLoadingState(registerForm, true)
+  hideAlert()
 
   try {
-    await registerUser(email, password, name);
-    registerForm.reset();
+    await registerUser(email, password, name)
+    registerForm.reset()
+    loginClick()
   } catch (error) {
-    showAlert(getFriendlyAuthErrorMessage(error.code), "error");
-    setAuthLoadingState(registerForm, false);
+    showAlert(getFriendlyAuthErrorMessage(error.code), "error")
   } finally {
-    tabBtnLogin.classList.add("active");
-    tabBtnRegister.classList.remove("active");
-    loginForm.classList.remove("hidden");
-    registerForm.classList.add("hidden");
-    hideAlert();
-    setAuthLoadingState(registerForm, false);
+    setAuthLoadingState(registerForm, false)
   }
-});
+})
 
 // Logout click trigger
 btnLogout.addEventListener("click", async () => {
-  const confirmLogout = confirm("Apakah Anda yakin ingin keluar?");
+  const confirmLogout = confirm("Apakah Anda yakin ingin keluar?")
   if (confirmLogout) {
     try {
-      await logoutUser();
+      await logoutUser()
     } catch (error) {
-      alert("Gagal keluar: " + error.message);
+      alert("Gagal keluar: " + error.message)
     }
   }
-});
+})
 
 // Helper: Show alert boxes inside Auth views
 function showAlert(message, type = "error") {
-  authAlert.textContent = message;
-  authAlert.className = `alert-box ${type === "success" ? "success" : ""}`;
-  authAlert.classList.remove("hidden");
+  authAlert.textContent = message
+  authAlert.className = `alert-box ${type === "success" ? "success" : ""}`
+  authAlert.classList.remove("hidden")
 }
 
 function hideAlert() {
-  authAlert.classList.add("hidden");
-  authAlert.textContent = "";
+  authAlert.classList.add("hidden")
+  authAlert.textContent = ""
 }
 
 // Helper: Toggle spinner and states in submit buttons during authentication
 function setAuthLoadingState(formEl, isLoading) {
-  const btn = formEl.querySelector(".auth-submit-btn");
-  const textSpan = btn.querySelector("span");
-  const spinner = btn.querySelector(".mini-spinner");
+  const btn = formEl.querySelector(".auth-submit-btn")
+  const textSpan = btn.querySelector("span")
+  const spinner = btn.querySelector(".mini-spinner")
 
-  btn.disabled = isLoading;
+  btn.disabled = isLoading
   if (isLoading) {
-    textSpan.style.opacity = "0.5";
-    spinner.classList.remove("hidden");
+    textSpan.style.opacity = "0.5"
+    spinner.classList.remove("hidden")
   } else {
-    textSpan.style.opacity = "1";
-    spinner.classList.add("hidden");
+    textSpan.style.opacity = "1"
+    spinner.classList.add("hidden")
   }
 }
 
@@ -489,46 +491,46 @@ function setAuthLoadingState(formEl, isLoading) {
 
 // Click "New Chat" button to prompt for title and instantiate
 btnNewChat.addEventListener("click", async () => {
-  if (!currentUser) return;
+  if (!currentUser) return
 
-  const defaultTitle = `Catatan Keuangan #${activeChats.length + 1}`;
-  const title = prompt("Masukkan topik obrolan keuangan Anda:", defaultTitle);
+  const defaultTitle = `Catatan Keuangan #${activeChats.length + 1}`
+  const title = prompt("Masukkan topik obrolan keuangan Anda:", defaultTitle)
 
-  if (title === null) return; // Canceled
+  if (title === null) return // Canceled
 
   try {
-    const newChatId = await createChat(currentUser.uid, title || defaultTitle);
-    selectChat(newChatId);
+    const newChatId = await createChat(currentUser.uid, title || defaultTitle)
+    selectChat(newChatId)
   } catch (error) {
-    alert("Gagal membuat obrolan baru: " + error.message);
+    alert("Gagal membuat obrolan baru: " + error.message)
   }
-});
+})
 
 // Chat form submission block
 chatForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
+  e.preventDefault()
 
-  const userPrompt = userInput.value.trim();
-  if (!userPrompt || !currentUser) return;
+  const userPrompt = userInput.value.trim()
+  if (!userPrompt || !currentUser) return
 
   // Ensure an active chat ID is loaded.
   // If not, automatically provision a new chat in the background
-  let chatId = activeChatId;
+  let chatId = activeChatId
   if (!chatId) {
     try {
-      chatId = await createChat(currentUser.uid, userPrompt.substring(0, 24) + "...");
-      activeChatId = chatId;
+      chatId = await createChat(currentUser.uid, userPrompt.substring(0, 24) + "...")
+      activeChatId = chatId
     } catch (error) {
-      alert("Gagal membuat obrolan otomatis: " + error.message);
-      return;
+      alert("Gagal membuat obrolan otomatis: " + error.message)
+      return
     }
   }
 
   // Clear input area immediately to improve visual speed
-  userInput.value = "";
+  userInput.value = ""
 
   // Block form controls to avoid multi-clicks
-  setInputState(true);
+  setInputState(true)
 
   // Execute the full transactional Chat Flow
   await executeChatFlow(
@@ -536,72 +538,72 @@ chatForm.addEventListener("submit", async (e) => {
     userPrompt,
     // onThinkingStarted callback
     () => {
-      showTypingIndicator(true);
+      showTypingIndicator(true)
     },
     // onThinkingFinished callback
     (responseContent, isSuccess) => {
-      showTypingIndicator(false);
-      setInputState(false);
+      showTypingIndicator(false)
+      setInputState(false)
 
       if (!isSuccess) {
         // Render local red bubble error details
-        renderLocalErrorMessage(responseContent);
+        renderLocalErrorMessage(responseContent)
       }
 
       // If success, the real-time messages listener will automatically fetch the DB save and render
     }
-  );
-});
+  )
+})
 
 // Suggested Prompt click bindings
 document.querySelectorAll(".suggested-prompt-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
-    userInput.value = btn.textContent.replace(/"/g, "");
-    userInput.focus();
-  });
-});
+    userInput.value = btn.textContent.replace(/"/g, "")
+    userInput.focus()
+  })
+})
 
 // Event delegation for Clipboard copies on parsed Markdown blocks
 chatBox.addEventListener("click", async (e) => {
   if (e.target.classList.contains("copy-code-btn")) {
-    const btn = e.target;
-    const codeBlock = btn.closest(".code-container").querySelector("code");
+    const btn = e.target
+    const codeBlock = btn.closest(".code-container").querySelector("code")
 
-    if (!codeBlock) return;
+    if (!codeBlock) return
 
     try {
-      await navigator.clipboard.writeText(codeBlock.innerText);
-      btn.textContent = "Tersalin!";
-      btn.classList.add("copied");
+      await navigator.clipboard.writeText(codeBlock.innerText)
+      btn.textContent = "Tersalin!"
+      btn.classList.add("copied")
 
       setTimeout(() => {
-        btn.textContent = "Salin";
-        btn.classList.remove("copied");
-      }, 2000);
+        btn.textContent = "Salin"
+        btn.classList.remove("copied")
+      }, 2000)
     } catch (err) {
-      console.error("Gagal menyalin kode:", err);
-      btn.textContent = "Gagal";
-      setTimeout(() => {btn.textContent = "Salin";}, 2000);
+      console.error("Gagal menyalin kode:", err)
+      btn.textContent = "Gagal"
+      setTimeout(() => {btn.textContent = "Salin"}, 2000)
     }
   }
-});
+})
 
 // Helper: Toggle chat panel form elements
 function setInputState(disabled) {
-  userInput.disabled = disabled;
-  btnSend.disabled = disabled;
+  userInput.disabled = disabled
+  btnSend.disabled = disabled
   if (!disabled) {
-    userInput.focus();
+    userInput.focus()
   }
 }
 
 // Helper: Toggle animated typing indicator
 function showTypingIndicator(show) {
   if (show) {
-    typingIndicator.classList.remove("hidden");
-    scrollToBottom();
+    typingIndicator.classList.remove("hidden")
+    scrollToBottom()
   } else {
-    typingIndicator.classList.add("hidden");
+    typingIndicator.classList.add("hidden")
   }
 }
 
@@ -617,77 +619,77 @@ function showTypingIndicator(show) {
  * @returns {string} Fully parsed safe HTML.
  */
 function parseMarkdown(text) {
-  if (!text) return "";
+  if (!text) return ""
 
   // 1. Double escape HTML entities to guarantee XSS prevention
   let html = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(/&/g, "&amp")
+    .replace(/</g, "&lt")
+    .replace(/>/g, "&gt")
+    .replace(/"/g, "&quot")
+    .replace(/'/g, "&#039")
 
   // 2. Extract, format, and preserve block code sections (```lang ... ```)
-  const codeBlocks = [];
+  const codeBlocks = []
   html = html.replace(/```(\w*)\n([\s\S]+?)```/g, (match, lang, code) => {
     codeBlocks.push({
       lang: lang || "code",
       code: code.trim()
-    });
-    return `###CODEBLOCKPLACEHOLDER${codeBlocks.length - 1}###`;
-  });
+    })
+    return `###CODEBLOCKPLACEHOLDER${codeBlocks.length - 1}###`
+  })
 
   // Pattern fallback without languages
   html = html.replace(/```([\s\S]+?)```/g, (match, code) => {
     codeBlocks.push({
       lang: "code",
       code: code.trim()
-    });
-    return `###CODEBLOCKPLACEHOLDER${codeBlocks.length - 1}###`;
-  });
+    })
+    return `###CODEBLOCKPLACEHOLDER${codeBlocks.length - 1}###`
+  })
 
   // 3. Inline code: `code`
-  html = html.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+  html = html.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
 
-  // 4. Blockquotes: lines starting with &gt; (which is escaped >)
-  html = html.replace(/^(?:&gt;)\s*(.+)$/gm, "<blockquote>$1</blockquote>");
-  html = html.replace(/<\/blockquote>\s*<blockquote>/g, "<br>"); // Merge consecutive lines
+  // 4. Blockquotes: lines starting with &gt (which is escaped >)
+  html = html.replace(/^(?:&gt)\s*(.+)$/gm, "<blockquote>$1</blockquote>")
+  html = html.replace(/<\/blockquote>\s*<blockquote>/g, "<br>") // Merge consecutive lines
 
   // 5. Bold text: **text** or __text__
-  html = html.replace(/\*\*([\s\S]+?)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/__([\s\S]+?)__/g, "<strong>$1</strong>");
+  html = html.replace(/\*\*([\s\S]+?)\*\*/g, "<strong>$1</strong>")
+  html = html.replace(/__([\s\S]+?)__/g, "<strong>$1</strong>")
 
   // 6. Italics text: *text* or _text_
-  html = html.replace(/\*([\s\S]+?)\*/g, "<em>$1</em>");
-  html = html.replace(/_([\s\S]+?)_/g, "<em>$1</em>");
+  html = html.replace(/\*([\s\S]+?)\*/g, "<em>$1</em>")
+  html = html.replace(/_([\s\S]+?)_/g, "<em>$1</em>")
 
   // 7. Unordered Lists: - item or * item
-  html = html.replace(/^\s*[-*]\s+(.+)$/gm, "<li>$1</li>");
+  html = html.replace(/^\s*[-*]\s+(.+)$/gm, "<li>$1</li>")
   // Wrap li sets under ul wrappers
-  html = html.replace(/(<li>[\s\S]+?<\/li>)/g, "<ul>$1</ul>");
-  html = html.replace(/<\/ul>\s*<ul>/g, ""); // Remove duplicate inner borders
+  html = html.replace(/(<li>[\s\S]+?<\/li>)/g, "<ul>$1</ul>")
+  html = html.replace(/<\/ul>\s*<ul>/g, "") // Remove duplicate inner borders
 
   // 8. Construct structural paragraphs separated by double enters
-  const chunks = html.split(/\n{2,}/);
+  const chunks = html.split(/\n{2,}/)
   html = chunks
     .map((chunk) => {
-      const trimmed = chunk.trim();
-      if (!trimmed) return "";
+      const trimmed = chunk.trim()
+      if (!trimmed) return ""
       // Skip paragraph wrappers for block nodes
       if (
         trimmed.startsWith("###CODEBLOCKPLACEHOLDER") ||
         trimmed.startsWith("<ul>") ||
         trimmed.startsWith("<blockquote>")
       ) {
-        return trimmed;
+        return trimmed
       }
-      return `<p>${trimmed.replace(/\n/g, "<br>")}</p>`;
+      return `<p>${trimmed.replace(/\n/g, "<br>")}</p>`
     })
-    .join("");
+    .join("")
 
   // 9. Re-inject code blocks securely under custom clipboard-copy containers
   codeBlocks.forEach((item, index) => {
-    const placeholder = `###CODEBLOCKPLACEHOLDER${index}###`;
+    const placeholder = `###CODEBLOCKPLACEHOLDER${index}###`
     const codeHtml = `
       <div class="code-container">
         <div class="code-header">
@@ -696,11 +698,11 @@ function parseMarkdown(text) {
         </div>
         <pre><code>${item.code}</code></pre>
       </div>
-    `.trim();
-    html = html.split(placeholder).join(codeHtml);
-  });
+    `.trim()
+    html = html.split(placeholder).join(codeHtml)
+  })
 
-  return html;
+  return html
 }
 
 /**
@@ -708,9 +710,9 @@ function parseMarkdown(text) {
  */
 function escapeHTML(str) {
   return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/&/g, "&amp")
+    .replace(/</g, "&lt")
+    .replace(/>/g, "&gt")
 }
 
 // =========================================================================
@@ -719,20 +721,20 @@ function escapeHTML(str) {
 function getFriendlyAuthErrorMessage(errorCode) {
   switch (errorCode) {
     case "auth/invalid-email":
-      return "Format alamat email tidak valid.";
+      return "Format alamat email tidak valid."
     case "auth/user-disabled":
-      return "Akun pengguna ini telah dinonaktifkan.";
+      return "Akun pengguna ini telah dinonaktifkan."
     case "auth/user-not-found":
     case "auth/wrong-password":
     case "auth/invalid-credential":
-      return "Email atau kata sandi salah. Silakan coba lagi.";
+      return "Email atau kata sandi salah. Silakan coba lagi."
     case "auth/email-already-in-use":
-      return "Alamat email ini sudah terdaftar oleh pengguna lain.";
+      return "Alamat email ini sudah terdaftar oleh pengguna lain."
     case "auth/weak-password":
-      return "Kata sandi terlalu lemah. Gunakan minimal 6 karakter.";
+      return "Kata sandi terlalu lemah. Gunakan minimal 6 karakter."
     case "auth/network-request-failed":
-      return "Koneksi jaringan gagal. Periksa koneksi internet Anda.";
+      return "Koneksi jaringan gagal. Periksa koneksi internet Anda."
     default:
-      return "Terjadi kesalahan internal. Silakan coba beberapa saat lagi.";
+      return "Terjadi kesalahan internal. Silakan coba beberapa saat lagi."
   }
 }
