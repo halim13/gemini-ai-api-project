@@ -16,8 +16,13 @@ app.use(cors())
 app.use(express.json())
 app.use(express.static("public"))
 
-const PORT = process.env.PORT || 3000
-app.listen(PORT, () => console.log(`server ready on http://localhost:${PORT}`))
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 3000;
+
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+  });
+}
 
 app.post('/generate-text', async (req, res) => {
   const {prompt} = req.body
@@ -177,4 +182,4 @@ app.post('/api/chat/conversation', async (req, res) => {
   }
 })
 
-module.exports.handler = serverless(app)
+export const handler = serverlessHttp(app)
