@@ -392,6 +392,17 @@ function loginClick() {
   hideAlert()
 }
 
+function resetPassword() {
+  document.querySelectorAll('.toggle-password').forEach(button => {
+    const input = document.getElementById(
+      button.dataset.target
+    )
+
+    input.type = 'password'
+    button.innerHTML = '<i class="fa fa-eye"></i>'
+  })
+}
+
 function registerClick() {
   tabBtnRegister.classList.add("active")
   tabBtnLogin.classList.remove("active")
@@ -412,6 +423,7 @@ loginForm.addEventListener("submit", async (e) => {
   try {
     await loginUser(email, password)
     loginForm.reset()
+    resetPassword()
   } catch (error) {
     showAlert(getFriendlyAuthErrorMessage(error.code), "error")
   } finally {
@@ -438,6 +450,7 @@ registerForm.addEventListener("submit", async (e) => {
     await registerUser(email, password, name)
     registerForm.reset()
     loginClick()
+    resetPassword()
   } catch (error) {
     showAlert(getFriendlyAuthErrorMessage(error.code), "error")
   } finally {
@@ -738,3 +751,18 @@ function getFriendlyAuthErrorMessage(errorCode) {
       return "Terjadi kesalahan internal. Silakan coba beberapa saat lagi."
   }
 }
+
+document.querySelectorAll('.toggle-password').forEach(button => {
+  button.addEventListener('click', () => {
+    const input = document.getElementById(
+      button.dataset.target
+    )
+
+    const isPassword = input.type === 'password'
+
+    input.type = isPassword ? 'text' : 'password'
+    button.innerHTML = isPassword
+      ? '<i class="fa fa-eye-slash"></i>'
+      : '<i class="fa fa-eye"></i>'
+  })
+})
