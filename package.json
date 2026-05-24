@@ -14,7 +14,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node api/index"
+    "dev": "node netlify/functions/api.js"
   },
   "keywords": [],
   "author": "",

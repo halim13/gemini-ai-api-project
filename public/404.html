@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 - Halaman Tidak Ditemukan</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-app: hsl(224, 40%, 6%);
+      --text-main: hsl(0, 0%, 95%);
+      --text-muted: hsl(224, 15%, 65%);
+
+      --color-primary: hsl(217, 91%, 60%);
+      --color-secondary: hsl(250, 95%, 68%);
+
+      --grad-accent:
+        linear-gradient(135deg,
+          var(--color-primary) 0%,
+          var(--color-secondary) 100%);
+
+      --glass-bg: rgba(13, 19, 34, 0.65);
+      --glass-border: rgba(255, 255, 255, .07);
+
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+
+      --radius-lg: 18px;
+      --radius-md: 12px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: var(--font-body);
+      background: var(--bg-app);
+      color: var(--text-main);
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bg-glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(140px);
+      opacity: .35;
+      pointer-events: none;
+    }
+
+    .bg-glow-1 {
+      width: 400px;
+      height: 400px;
+      background: var(--color-primary);
+      top: -120px;
+      left: -120px;
+    }
+
+    .bg-glow-2 {
+      width: 500px;
+      height: 500px;
+      background: var(--color-secondary);
+      right: -150px;
+      bottom: -150px;
+    }
+
+    .card {
+      position: relative;
+      z-index: 10;
+
+      width: min(90%, 560px);
+
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+
+      padding: 48px 36px;
+      text-align: center;
+
+      box-shadow:
+        0 20px 40px rgba(0, 0, 0, .45),
+        inset 0 1px 1px rgba(255, 255, 255, .05);
+    }
+
+    .error-code {
+      font-family: var(--font-heading);
+      font-size: 6rem;
+      font-weight: 800;
+      line-height: 1;
+
+      background: var(--grad-accent);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+
+      margin-bottom: 16px;
+    }
+
+    .title {
+      font-family: var(--font-heading);
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .description {
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+
+    .btn-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+
+      text-decoration: none;
+      color: white;
+
+      background: var(--grad-accent);
+
+      padding: 14px 24px;
+      border-radius: var(--radius-md);
+
+      font-weight: 600;
+
+      transition: .25s ease;
+
+      box-shadow:
+        0 4px 15px rgba(59, 130, 246, .25);
+    }
+
+    .btn-home:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 8px 24px rgba(59, 130, 246, .35);
+    }
+
+    .btn-home:active {
+      transform: translateY(0);
+    }
+
+    .subtext {
+      margin-top: 24px;
+      color: var(--text-muted);
+      font-size: .85rem;
+    }
+
+    @media (max-width: 600px) {
+      .card {
+        padding: 36px 24px;
+      }
+
+      .error-code {
+        font-size: 4.5rem;
+      }
+
+      .title {
+        font-size: 1.6rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <div class="card">
+    <div class="error-code">404</div>
+
+    <h1 class="title">
+      Halaman Tidak Ditemukan
+    </h1>
+
+    <p class="description">
+      Halaman yang Anda cari mungkin telah dipindahkan,
+      dihapus, atau URL yang dimasukkan tidak valid.
+    </p>
+
+    <a href="/" class="btn-home">
+      ← Kembali ke Beranda
+    </a>
+  </div>
+
+</body>
+
+</html>
