@@ -480,29 +480,45 @@ body {
   color: white;
 }
 
-.btn-delete-chat {
+.chat-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-rename-chat, .btn-delete-chat {
   background: transparent;
   border: none;
   color: var(--text-muted);
   opacity: 0;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 6px;
+  border-radius: var(--radius-sm);
   transition: var(--transition-smooth);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.chat-item:hover .btn-rename-chat,
 .chat-item:hover .btn-delete-chat {
   opacity: 0.6;
+}
+
+.chat-item .btn-rename-chat:hover {
+  opacity: 1;
+  color: var(--color-primary);
+  background-color: rgba(59, 130, 246, 0.1);
+  transform: scale(1.05);
 }
 
 .chat-item .btn-delete-chat:hover {
   opacity: 1;
   color: #ef4444;
   background-color: rgba(239, 68, 68, 0.1);
+  transform: scale(1.05);
 }
+
 
 /* User Profile Sidebar Footer */
 .sidebar-footer {

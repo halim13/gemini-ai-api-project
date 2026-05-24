@@ -95,6 +95,24 @@ export async function deleteChat(chatId) {
 }
 
 /**
+ * Update the title of a specific chat document.
+ * 
+ * @param {string} chatId - The ID of the chat to rename.
+ * @param {string} newTitle - The new title.
+ * @returns {Promise<void>}
+ */
+export async function renameChat(chatId, newTitle) {
+  try {
+    const chatRef = doc(db, "chats", chatId);
+    await setDoc(chatRef, { title: newTitle.trim(), updatedAt: serverTimestamp() }, { merge: true });
+  } catch (error) {
+    console.error("Error renaming chat:", error);
+    throw error;
+  }
+}
+
+
+/**
  * Update the `updatedAt` timestamp of a specific chat.
  * 
  * @param {string} chatId - The ID of the chat.
