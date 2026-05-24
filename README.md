@@ -15,11 +15,12 @@ yarn install
 # bun
 bun install
 ```
-Make sure setup env:
+Make sure to:
 
 ```bash
 - rename example.env to .env
 - filled all env from API google genimi to firebase setup
+- please allow indexing from your firebase project
 ```
 
 ## Development Server
