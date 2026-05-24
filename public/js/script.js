@@ -8,7 +8,9 @@ import {
   onAuthStateChangedListener,
   registerUser,
   loginUser,
-  logoutUser
+  logoutUser,
+  updateUserDisplayName,
+  updateUserPassword
 } from "./auth.js"
 
 import {
@@ -60,6 +62,16 @@ const userDisplayName = document.getElementById("user-display-name")
 const userEmail = document.getElementById("user-email")
 const userAvatarInitials = document.getElementById("user-avatar-initials")
 const emptyChatState = document.getElementById("empty-chat-state")
+
+// Profile Settings Modal elements
+const btnUserSettings = document.getElementById("btn-user-settings")
+const settingsModal = document.getElementById("settings-modal")
+const btnCloseSettings = document.getElementById("btn-close-settings")
+const settingsForm = document.getElementById("settings-form")
+const settingsName = document.getElementById("settings-name")
+const settingsPassword = document.getElementById("settings-password")
+const settingsAlert = document.getElementById("settings-alert")
+
 
 // =========================================================================
 // Initialization and Authentication Listeners
@@ -918,6 +930,8 @@ function getFriendlyAuthErrorMessage(errorCode) {
       return "Alamat email ini sudah terdaftar oleh pengguna lain."
     case "auth/weak-password":
       return "Kata sandi terlalu lemah. Gunakan minimal 6 karakter."
+    case "auth/requires-recent-login":
+      return "Keamanan: Harap keluar (logout) dan masuk kembali untuk mengubah kata sandi Anda."
     case "auth/network-request-failed":
       return "Koneksi jaringan gagal. Periksa koneksi internet Anda."
     default:
@@ -939,3 +953,129 @@ document.querySelectorAll('.toggle-password').forEach(button => {
       : '<i class="fa fa-eye"></i>'
   })
 })
+
+// =========================================================================
+// Profile Settings Modal Event Handlers
+// =========================================================================
+
+// Open Settings Modal
+btnUserSettings.addEventListener("click", () => {
+  if (!currentUser) return
+  
+  // Set current visual values in form
+  settingsName.value = currentUser.displayName || ""
+  settingsPassword.value = ""
+  
+  // Hide any existing stale alert boxes
+  hideSettingsAlert()
+  
+  // Display settings modal
+  settingsModal.classList.remove("hidden")
+})
+
+// Close Settings Modal
+btnCloseSettings.addEventListener("click", () => {
+  settingsModal.classList.add("hidden")
+})
+
+// Close modal when clicking on dark backdrop overlay itself
+settingsModal.addEventListener("click", (e) => {
+  if (e.target === settingsModal) {
+    settingsModal.classList.add("hidden")
+  }
+})
+
+// Helper: Show/Hide Settings modal alerts
+function showSettingsAlert(message, type = "error") {
+  settingsAlert.textContent = message
+  settingsAlert.className = `alert-box ${type === "success" ? "success" : ""}`
+  settingsAlert.classList.remove("hidden")
+}
+
+function hideSettingsAlert() {
+  settingsAlert.classList.add("hidden")
+  settingsAlert.textContent = ""
+}
+
+// Settings Form Submission
+settingsForm.addEventListener("submit", async (e) => {
+  e.preventDefault()
+
+  if (!currentUser) return
+
+  const newName = settingsName.value.trim()
+  const newPassword = settingsPassword.value
+
+  if (newName === "") {
+    showSettingsAlert("Nama tidak boleh kosong.", "error")
+    return
+  }
+
+  // If password is being changed, ensure it's at least 6 characters
+  if (newPassword !== "" && newPassword.length < 6) {
+    showSettingsAlert("Kata sandi baru harus minimal 6 karakter.", "error")
+    return
+  }
+
+  // Toggle button loading indicator
+  const btn = settingsForm.querySelector(".settings-submit-btn")
+  const textSpan = btn.querySelector("span")
+  const spinner = btn.querySelector(".mini-spinner")
+  
+  btn.disabled = true
+  textSpan.style.opacity = "0.5"
+  spinner.classList.remove("hidden")
+  hideSettingsAlert()
+
+  try {
+    let nameChanged = newName !== currentUser.displayName
+    let passwordChanged = newPassword !== ""
+
+    // 1. Update Display Name if modified
+    if (nameChanged) {
+      await updateUserDisplayName(newName)
+      
+      // Update sidebar UI in real-time
+      userDisplayName.textContent = newName
+      userAvatarInitials.textContent = newName
+        .split(" ")
+        .map(n => n[0])
+        .join("")
+        .toUpperCase()
+        .substring(0, 2)
+    }
+
+    // 2. Update Password if specified
+    if (passwordChanged) {
+      await updateUserPassword(newPassword)
+    }
+
+    if (nameChanged || passwordChanged) {
+      showSettingsAlert("Perubahan profil berhasil disimpan!", "success")
+      
+      // Clear password field
+      settingsPassword.value = ""
+      
+      // Reset eye toggles
+      resetPassword()
+
+      // Close modal smoothly after 1.5 seconds success window
+      setTimeout(() => {
+        settingsModal.classList.add("hidden")
+      }, 1500)
+    } else {
+      showSettingsAlert("Tidak ada perubahan yang terdeteksi.", "success")
+      setTimeout(() => {
+        settingsModal.classList.add("hidden")
+      }, 1000)
+    }
+  } catch (error) {
+    console.error("Gagal menyimpan pengaturan profil:", error)
+    showSettingsAlert(getFriendlyAuthErrorMessage(error.code || error.message), "error")
+  } finally {
+    btn.disabled = false
+    textSpan.style.opacity = "1"
+    spinner.classList.add("hidden")
+  }
+})
+

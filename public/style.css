@@ -536,7 +536,21 @@ body {
   align-items: center;
   gap: 12px;
   min-width: 0;
+  cursor: pointer;
+  padding: 6px 12px;
+  margin-left: -12px;
+  border-radius: var(--radius-md);
+  transition: var(--transition-smooth);
 }
+
+.user-profile:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.user-profile:hover .user-avatar {
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+}
+
 
 .user-avatar {
   width: 40px;
@@ -1202,4 +1216,94 @@ code {
   padding: 0;
   font-size: 18px;
   color: var(--text-muted);
+}
+
+/* =========================================================================
+   Modal Overlay & Card Settings
+   ========================================================================= */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(6, 9, 17, 0.85);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 440px;
+  background-color: var(--bg-panel);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 40px rgba(59, 130, 246, 0.05);
+  animation: scale-up-modal 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+@keyframes scale-up-modal {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.modal-header h2 {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: white;
+}
+
+.btn-close-modal {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-close-modal:hover {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.05);
+  transform: rotate(90deg);
+}
+
+.settings-submit-btn {
+  width: 100%;
+  margin-top: 16px;
+}
+
+#settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }

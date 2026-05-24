@@ -10,7 +10,9 @@ import {
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
+  updatePassword,
   onAuthStateChanged
+
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 import {
   doc,
@@ -101,3 +103,48 @@ export function getCurrentUser() {
 export function onAuthStateChangedListener(callback) {
   return onAuthStateChanged(auth, callback);
 }
+
+/**
+ * Updates the visual display name of the currently active user in Auth and Firestore.
+ * 
+ * @param {string} displayName - The new display name.
+ * @returns {Promise<void>}
+ */
+export async function updateUserDisplayName(displayName) {
+  try {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No user is currently authenticated.");
+
+    // 1. Update visual profile display name in Auth
+    await updateProfile(user, { displayName: displayName.trim() });
+
+    // 2. Update Firestore users collection record
+    const userDocRef = doc(db, "users", user.uid);
+    await setDoc(userDocRef, {
+      displayName: displayName.trim(),
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (error) {
+    console.error("Error in updateUserDisplayName service:", error);
+    throw error;
+  }
+}
+
+/**
+ * Updates the password of the currently active user.
+ * 
+ * @param {string} newPassword - The new password.
+ * @returns {Promise<void>}
+ */
+export async function updateUserPassword(newPassword) {
+  try {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No user is currently authenticated.");
+
+    await updatePassword(user, newPassword);
+  } catch (error) {
+    console.error("Error in updateUserPassword service:", error);
+    throw error;
+  }
+}
+

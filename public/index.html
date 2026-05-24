@@ -146,7 +146,7 @@
 
       <!-- User Profile & Logout -->
       <div class="sidebar-footer">
-        <div class="user-profile">
+        <div class="user-profile" id="btn-user-settings" title="Pengaturan Profil">
           <div class="user-avatar" id="user-avatar-initials">U</div>
           <div class="user-info">
             <span class="user-display-name" id="user-display-name">User</span>
@@ -222,8 +222,49 @@
     </main>
   </div>
 
+  <!-- SETTINGS MODAL -->
+  <div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Pengaturan Profil</h2>
+        <button type="button" id="btn-close-settings" class="btn-close-modal" title="Tutup">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div id="settings-alert" class="alert-box hidden"></div>
+
+      <form id="settings-form" class="gap">
+        <div class="form-group">
+          <label for="settings-name">Nama Lengkap</label>
+          <input type="text" id="settings-name" placeholder="Nama Lengkap" autocomplete="name" required />
+        </div>
+        <div class="form-group">
+          <label for="settings-password">Kata Sandi Baru (Opsional)</label>
+          <div class="password-wrapper">
+            <input type="password" id="settings-password" placeholder="Kosongkan jika tidak diubah"
+              autocomplete="new-password" />
+            <button type="button" class="toggle-password" data-target="settings-password">
+              <i class="fa fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary settings-submit-btn">
+          <span>Simpan Perubahan</span>
+          <div class="mini-spinner hidden"></div>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- Bootstrapping main script -->
   <script type="module" src="js/script.js"></script>
 </body>
+
 
 </html>
