@@ -1,3 +1,6 @@
+## Demo App
+https://demo-keuanganku.netlify.app/
+
 ## Setup
 
 Make sure to install dependencies:
